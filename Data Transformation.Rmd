@@ -1,0 +1,97 @@
+---
+title: "Data Transformation"
+author: "Joseph Romani"
+date: "10/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r setup}
+library(nycflights13)
+library(tidyverse)
+```
+
+## 5.2.4 Exercise solutions
+
+1. Find all flights that
+  a. Had an arrival delay of two or more hours
+  b. Flew to Houston (IAH or HOU)
+  c. Were operated by United, American, or Delta
+  d. Departed in summer (July, August, and September)
+  e. Arrived more than two hours late, but didn’t leave late
+  f. Were delayed by at least an hour, but made up over 30 minutes     in flight
+  g.Departed between midnight and 6am (inclusive)
+  
+2. Another useful dplyr filtering helper is `between()`. What does it do? Can you use it to simplify the code needed to answer the previous challenges?
+  
+  *It for the syntax `between(x, limit1, limit2)` it filters on element x between limit1 and limit2 inclusively.
+  
+  ** see exercise 1.d and 1.g for examples this construct in use
+
+```{r exercise_1a, echo=FALSE}
+flights %>% 
+  filter(arr_delay >=120)
+```
+
+```{r exercise_1b, echo=FALSE}
+flights %>% 
+  filter(dest == "IAH" | dest == "HOU")
+```
+
+```{r exercise_1c, echo=FALSE}
+flights %>% 
+  filter(carrier == "UA" | carrier == "AA"| carrier == "DL")
+```
+
+
+```{r exercise_1d, echo=FALSE}
+flights %>% 
+  filter(between(month, 7,9))
+```
+
+```{r exercise_1e, echo=FALSE}
+flights %>% 
+  filter(arr_delay > 120 & dep_delay <=0)
+```
+
+```{r exercise_1f, echo=FALSE}
+flights %>% 
+  filter(dep_delay >= 60 & (dep_delay - arr_delay) >30)
+```
+
+
+```{r exercise_1g, echo=FALSE}
+flights %>% 
+  filter(between(dep_time, 0, 600))
+```
+
+
+3. How many flights have a missing dep_time? What other variables are missing? What might these rows represent?
+
+They may represent flights that never departed due to cancellations.
+
+```{r exercise_3, echo=FALSE}
+flights %>% 
+  filter(is.na(dep_time))%>%
+  summarize(n = n())
+```
+4. Why is `NA ^ 0` not missing? Why is `NA | TRUE` not missing? Why is `FALSE & NA` not missing? Can you figure out the general rule? (NA * 0 is a tricky counterexample!)
+
+The general rule is that whenever there is a logical expressions, if one can be tested, then the result shouldn't be `NA`. And any operation that the results is determined, regardless of the number, the inputting `NA` does not affect the result.
+
+
+## 5.3.1 Exercises
+
+
+
+
+

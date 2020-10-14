@@ -1,0 +1,36 @@
+---
+title: "R for Data Science - Data Visualization"
+author: "Joseph Romani"
+date: "10/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Tidyverse
+
+
+```{r cars}
+library(tidyverse)
+```
+
+## Exercises
+
+1. Run ggplot(data = mpg). What do you see?
+
+```{r exercise_1}
+ggplot(data = mpg)
+```
+How many rows are in mpg? How many columns?
+```{r exercise_2}
+nrow(mpg)
+ncol(mpg)
+```
+
+How many rows are in mpg? How many columns?
+```{r exercise_2}
+nrow(mpg)
+ncol(mpg)
+```
