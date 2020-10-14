@@ -137,11 +137,52 @@ flights %>%
 
 Brainstorm as many ways as possible to select dep_time, dep_delay, arr_time, and arr_delay from flights.
 
+```{r exercise_4.1}
+#select just the 4 columns
+flights %>%
+  select(dep_time, dep_delay, arr_time, arr_delay)
+
+#select the columns that begin with a string
+flights %>%
+  select(starts_with("dep") | starts_with("arr"))
+
+#select the columns that end with a string
+flights %>%
+  select((ends_with("time") | ends_with("delay")) & !(starts_with("sched") | starts_with("air")))
+
+#reorder the 4 columns to the front
+flights %>%
+  select(dep_time, dep_delay, arr_time, arr_delay, everything())
+```
+
+
+
+
 What happens if you include the name of a variable multiple times in a select() call?
 
-What does the any_of() function do? Why might it be helpful in conjunction with this vector?
+    It just returns the variable once
 
+```{r exercise_4.2}
+flights %>%
+  select(arr_time, arr_time)
+```
+
+
+3. What does the any_of() function do? Why might it be helpful in conjunction with this vector?
+
+    `any_of()` allows you to select all the variables named in a vector of character strings that are present in a dataframe
+```{r exercise_4.3}
 vars <- c("year", "month", "day", "dep_delay", "arr_delay")
-Does the result of running the following code surprise you? How do the select helpers deal with case by default? How can you change that default?
+flights %>%
+  select(any_of(vars))
+```
 
+4. Does the result of running the following code surprise you? How do the select helpers deal with case by default? How can you change that default?
+
+ *By default, each select_helper function ignore the cases of the variables.
+
+```{r exercise 4.4}
 select(flights, contains("TIME"))
+```
+
+
