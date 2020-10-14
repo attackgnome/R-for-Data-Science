@@ -15,10 +15,11 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r setup}
+```{r load_packages}
 library(nycflights13)
 library(tidyverse)
 ```
+
 
 ## 5.2.4 Exercise solutions
 
@@ -37,39 +38,39 @@ library(tidyverse)
   
   ** see exercise 1.d and 1.g for examples this construct in use
 
-```{r exercise_1a, echo=FALSE}
+```{r exercise_2.1a, echo=FALSE}
 flights %>% 
   filter(arr_delay >=120)
 ```
 
-```{r exercise_1b, echo=FALSE}
+```{r exercise_2.1b, echo=FALSE}
 flights %>% 
   filter(dest == "IAH" | dest == "HOU")
 ```
 
-```{r exercise_1c, echo=FALSE}
+```{r exercise_2.1c, echo=FALSE}
 flights %>% 
   filter(carrier == "UA" | carrier == "AA"| carrier == "DL")
 ```
 
 
-```{r exercise_1d, echo=FALSE}
+```{r exercise_2.1d, echo=FALSE}
 flights %>% 
   filter(between(month, 7,9))
 ```
 
-```{r exercise_1e, echo=FALSE}
+```{r exercise_2.1e, echo=FALSE}
 flights %>% 
   filter(arr_delay > 120 & dep_delay <=0)
 ```
 
-```{r exercise_1f, echo=FALSE}
+```{r exercise_2.1f, echo=FALSE}
 flights %>% 
   filter(dep_delay >= 60 & (dep_delay - arr_delay) >30)
 ```
 
 
-```{r exercise_1g, echo=FALSE}
+```{r exercise_2.1g}
 flights %>% 
   filter(between(dep_time, 0, 600))
 ```
@@ -79,7 +80,7 @@ flights %>%
 
 They may represent flights that never departed due to cancellations.
 
-```{r exercise_3, echo=FALSE}
+```{r exercise_2.3}
 flights %>% 
   filter(is.na(dep_time))%>%
   summarize(n = n())
@@ -92,6 +93,55 @@ The general rule is that whenever there is a logical expressions, if one can be 
 ## 5.3.1 Exercises
 
 
+1. How could you use arrange() to sort all missing values to the start? (Hint: use is.na()).
+
+```{r exercise_3.1}
+flights %>% 
+  arrange(!is.na(dep_time), dep_time)
+```
+
+
+2. Sort flights to find the most delayed flights. Find the flights that left earliest.
+
+```{r exercise_3.2}
+flights %>% 
+  arrange(desc(dep_delay))
+
+flights %>% 
+  arrange(dep_time)
+```
+
+
+Sort flights to find the fastest (highest speed) flights.
+
+```{r exercise_3.3}
+flights %>% 
+  mutate(speed = distance/air_time*60)%>%
+  arrange(desc(speed))
+```
 
 
 
+Which flights travelled the farthest? Which travelled the shortest?
+
+```{r exercise_3.3}
+#farthest
+flights %>% 
+  arrange(desc(distance))
+
+#shortest
+flights %>% 
+  arrange(distance)
+```
+## 5.4.1 Exercises
+
+Brainstorm as many ways as possible to select dep_time, dep_delay, arr_time, and arr_delay from flights.
+
+What happens if you include the name of a variable multiple times in a select() call?
+
+What does the any_of() function do? Why might it be helpful in conjunction with this vector?
+
+vars <- c("year", "month", "day", "dep_delay", "arr_delay")
+Does the result of running the following code surprise you? How do the select helpers deal with case by default? How can you change that default?
+
+select(flights, contains("TIME"))
