@@ -1,0 +1,58 @@
+---
+title: "Relational data"
+author: "attackgnome"
+date: "10/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 13.2.1 Exercises
+
+Imagine you wanted to draw (approximately) the route each plane flies from its origin to its destination. What variables would you need? What tables would you need to combine?
+
+  We would need the latitude and longitude of the origin and destination airport. We would need to combine the information in the airports and flights table.
+
+I forgot to draw the relationship between weather and airports. What is the relationship and how should it appear in the diagram?
+
+  It would be a line connecting the `faa` field in the airports table to the `origin` field in the weather table.
+
+weather only contains information for the origin (NYC) airports. If it contained weather records for all airports in the USA, what additional relation would it define with flights?
+
+  There would also be a relation to the destination field in the flights table
+
+We know that some days of the year are “special”, and fewer people than usual fly on them. How might you represent that data as a data frame? What would be the primary keys of that table? How would it connect to the existing tables?
+
+  One way to represent it would be a table consisting of the month and day of the "special" day and a comment describing what the day is. The primary keys would be the month and day and would allow the table to be linked to the flights table.
+  
+  
+## 13.3.1 Exercises
+1. Add a surrogate key to flights.
+
+2. Identify the keys in the following datasets
+  a. Lahman::Batting,
+  b. babynames::babynames
+  c. nasaweather::atmos
+  d. fueleconomy::vehicles
+  e. ggplot2::diamonds
+  (You might need to install some packages and read some documentation.)
+
+3. Draw a diagram illustrating the connections between the Batting, People, and Salaries tables in the Lahman package. Draw another diagram that shows the relationship between People, Managers, AwardsManagers.
+
+4. How would you characterise the relationship between the Batting, Pitching, and Fielding tables?  
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
