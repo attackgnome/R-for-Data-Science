@@ -262,25 +262,108 @@ flights %>%
   
 While departure delay can cause problems, if there are unused gates that can be used for other incoming aircraft, arrival delay is much more problematic. Since planes typically fly multiple routes during a day and passengers often need to make connecting flights, delays in arrival can cause cascading delays.
 
-```{r}
+```{r exercise_5.6.1}
+##Calculate the percentage of flights that meet certain delay conditions
+delay_char <- flights %>%
+  group_by(flight)%>%
+  summarise(n = n(),
+            fifteen_early = mean(arr_delay == -15, na.rm = TRUE),
+            fifteen_late = mean(arr_delay == 15, na.rm = TRUE),
+            ten_late = mean(arr_delay ==10, na.rm = TRUE),
+            thirty_early = mean(arr_delay ==-30, na.rm = TRUE),
+            thirty_late = mean(arr_delay == 30, na.rm = TRUE),
+            percentage_on_time = mean(arr_delay == 0, na.rm = TRUE),
+            twohours = mean(arr_delay > 120, na.rm = TRUE))%>%
+  map_if(is_double, round, 2)%>% #round output to two decimal places
+  as_tibble()
+# flight is 15 minutes early 50% of the time, and 15 minutes late 50% of the time.
+delay_char %>%
+  filter(fifteen_early == 0.5,
+         fifteen_late == 0.5)
+
+# flight is always 10 minutes late.
+delay_char %>%
+  filter(ten_late == 1)
+
+# A flight is 30 minutes early 50% of the time, and 30 minutes late 50% of the time.
+delay_char %>%
+  filter(thirty_early == 0.5, thirty_late ==0.5)
+
+# 99% of the time a flight is on time. 1% of the time it’s 2 hours late.
+delay_char %>%
+  filter(percentage_on_time == 0.99, twohours == 0.01)
 
 ```
-
-
-
-2. Which is more important: arrival delay or departure delay?
 
 2. Come up with another approach that will give you the same output as not_cancelled %>% count(dest) and not_cancelled %>% count(tailnum, wt = distance) (without using count()).
 
+```{r exercise_5.6.2}
+not_cancelled %>% group_by(dest) %>% summarise(n =n())
+
+not_cancelled %>% group_by(tailnum) %>% summarise(n =sum(distance))
+```
+
+
+
 3. Our definition of cancelled flights (is.na(dep_delay) | is.na(arr_delay) ) is slightly suboptimal. Why? Which is the most important column?
+
+The term `is.na(arr_delay)` is redundant, if the condition `is.na(dep_delay)` is met thant the flight was cancelled and no further conditions are required.
 
 4. Look at the number of cancelled flights per day. Is there a pattern? Is the proportion of cancelled flights related to the average delay?
 
+It looks like their is a positive relationship. An increase in the number of cancelled flights in a day corresponds to increased delays on that day.
+
+```{r exercise_5.6.4}
+flights %>%
+  group_by(day) %>%
+  summarize(cancelled = sum(is.na(dep_delay)),
+            mean_dep = mean(dep_delay, na.rm = TRUE),
+            mean_arr = mean(arr_delay, na.rm = TRUE)) %>%
+  ggplot(aes(y = cancelled)) + geom_point(aes(x=mean_dep), colour = "red") +
+  geom_point(aes(x= mean_arr), colour = "blue") + 
+  labs(x = "Avg delay per day", y = "Cancelled flights per day")
+```
+
+
+
 5. Which carrier has the worst delays? Challenge: can you disentangle the effects of bad airports vs. bad carriers? Why/why not? (Hint: think about flights %>% group_by(carrier, dest) %>% summarise(n()))
+
+```{r exercise_5.6.5}
+flights %>% 
+  group_by(carrier, dest) %>%   
+  summarize(cancelled = sum(is.na(dep_delay)),
+            mean_dep = mean(dep_delay, na.rm = TRUE),
+            mean_arr = mean(arr_delay, na.rm = TRUE)) %>%
+  ggplot(aes(x = mean_dep)) + geom_histogram(color = carrier)
+```
+
+
+
+
 
 6. What does the sort argument to count() do. When might you use it?
 
-```{r}
-
+When you want to sort the cases based on the count.
+```{r exercise_5.6.6}
+flights %>%
+  count(flight, sort = T)
 ```
 
+## 5.7.1 Exercises
+1. Refer back to the lists of useful mutate and filtering functions. Describe how each operation changes when you combine it with grouping.
+
+  A grouped filter is a grouped mutate followed by an ungrouped filter. 
+
+Which plane (tailnum) has the worst on-time record?
+
+What time of day should you fly if you want to avoid delays as much as possible?
+
+For each destination, compute the total minutes of delay. For each flight, compute the proportion of the total delay for its destination.
+
+Delays are typically temporally correlated: even once the problem that caused the initial delay has been resolved, later flights are delayed to allow earlier flights to leave. Using lag(), explore how the delay of a flight is related to the delay of the immediately preceding flight.
+
+Look at each destination. Can you find flights that are suspiciously fast? (i.e. flights that represent a potential data entry error). Compute the air time of a flight relative to the shortest flight to that destination. Which flights were most delayed in the air?
+
+Find all destinations that are flown by at least two carriers. Use that information to rank the carriers.
+
+For each plane, count the number of flights before the first delay of greater than 1 hour.
