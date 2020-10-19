@@ -43,6 +43,51 @@ We know that some days of the year are “special”, and fewer people than usua
 
 4. How would you characterise the relationship between the Batting, Pitching, and Fielding tables?  
 
+
+## 13.4.6 Exercises
+1. Compute the average delay by destination, then join on the airports data frame so you can show the spatial distribution of delays. Here’s an easy way to draw a map of the United States:
+
+```{r exercises_4.6.1}
+delay <- flights %>%
+  group_by(dest)%>%
+  summarize(delay = abs(mean(arr_delay, na.rm = TRUE))+ abs(mean(dep_delay, na.rm = TRUE)))
+
+airports %>%
+  semi_join(flights, c("faa" = "dest")) %>%
+  left_join(delay, c("faa" = "dest"))%>%
+  ggplot(aes(lon, lat)) +
+    borders("state") +
+    geom_point(aes(colour = delay)) +
+    coord_quickmap()
+```
+
+
+2. Add the location of the origin and destination (i.e. the lat and lon) to flights.
+
+
+```{r exercise 4.6.2}
+airports %>%
+  select(lat, lon, faa)%>%
+  left_join(flights, c("faa" = "origin")) %>%
+  rename(orign_lat = lat, origin_lon = lon)%>%
+```
+
+
+3. Is there a relationship between the age of a plane and its delays?
+
+```{r exercise 4.6.3}
+
+```
+
+
+What weather conditions make it more likely to see a delay?
+
+What happened on June 13 2013? Display the spatial pattern of delays, and then use Google to cross-reference with the weather.
+
+
+
+
+
 ```{r cars}
 summary(cars)
 ```
