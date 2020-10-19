@@ -80,7 +80,7 @@ airports %>%
 2. Add the location of the origin and destination (i.e. the lat and lon) to flights.
 
 
-```{r exercise 4.6.2}
+```{r exercise_4.6.2}
 airport_loc <- airports%>%
   select(lat, lon, faa)
 
@@ -94,7 +94,7 @@ flights %>%
 
 3. Is there a relationship between the age of a plane and its delays?
 
-```{r exercise 4.6.3}
+```{r exercise_4.6.3}
 planes %>%
   select(tailnum, model, plane_year = year)%>%
   inner_join(flights, "tailnum") %>%
@@ -106,28 +106,124 @@ planes %>%
 
 4. What weather conditions make it more likely to see a delay?
 
-```{r exercise 4.6.4}
+```{r exercise_4.6.4}
+flights_weather <- flights %>%
+  inner_join(weather, by = c("origin"= "origin", "year" = "year", "month" = "month", "day" = "day", "hour"= "hour"))
+
+#Precipitation
+flights_weather%>%
+  group_by(precip)%>%
+  summarise(delay = mean(dep_delay, na.rm = TRUE))%>%
+  ggplot(aes(x=precip, y=delay))+ geom_line() + geom_point()
+
+#Visibility
+flights_weather%>%
+  mutate(visib_cat = cut_interval(visib, n = 10)) %>%
+  group_by(visib_cat) %>%
+  summarise(dep_delay = mean(dep_delay, na.rm = TRUE)) %>%
+  ggplot(aes(x = visib_cat, y = dep_delay)) +  geom_point()
+
+#Temp
+flights_weather%>%
+  mutate(temp_cat = cut_interval(temp, n = 10)) %>%
+  group_by(temp_cat) %>%
+  summarise(dep_delay = mean(dep_delay, na.rm = TRUE)) %>%
+  ggplot(aes(x = temp_cat, y = dep_delay)) +  geom_point()
+
+```
+
+
+5. What happened on June 13 2013? Display the spatial pattern of delays, and then use Google to cross-reference with the weather.
+
+```{r exercise_4.6.5}
 flights %>%
-  inner_join(weather, "origin")
+  filter(year == 2013, month == 6, day == 13) %>%
+  group_by(dest) %>%
+  summarise(delay = mean(arr_delay, na.rm = TRUE)) %>%
+  inner_join(airports, by = c("dest" = "faa")) %>%
+  ggplot(aes(y = lat, x = lon, size = delay, colour = delay)) +
+  borders("state") +
+  geom_point() +
+  coord_quickmap() 
 ```
 
 
-What happened on June 13 2013? Display the spatial pattern of delays, and then use Google to cross-reference with the weather.
+## 13.5.1 Exercises
+1. What does it mean for a flight to have a missing tailnum? What do the tail numbers that don’t have a matching record in planes have in common? (Hint: one variable explains ~90% of the problems.)
 
+It means the flight never departed, (i.e. the flight was cancelled)
 
-
-
-
-```{r cars}
-summary(cars)
+```{r exercise_5.1.1}
+flights %>% filter(is.na(tailnum))
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+2. Filter flights to only show flights with planes that have flown at least 100 flights.
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r exercise_5.1.2}
+flights %>% 
+  right_join(planes, "tailnum") %>%
+  group_by(model) %>%
+  summarise(n = n())%>%
+  filter(n>99) %>%
+  arrange(desc(n))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+3. Combine fueleconomy::vehicles and fueleconomy::common to find only the records for the most common models.
+
+```{r exercise_5.1.3}
+vehicles %>% 
+  right_join(common, c("make", "model"))%>%
+  group_by(make)%>%
+  count()
+```
+
+
+4. Find the 48 hours (over the course of the whole year) that have the worst delays. Cross-reference it with the weather data. Can you see any patterns?
+
+```{r exercise_5.1.4}
+worst_hours <- flights %>%
+  mutate(hour = sched_dep_time %/% 100) %>%
+  group_by(origin, year, month, day, hour) %>%
+  summarise(dep_delay = mean(dep_delay, na.rm = TRUE)) %>%
+  ungroup() %>%
+  arrange(desc(dep_delay)) %>%
+  slice(1:48)
+
+weather_most_delayed <- semi_join(weather, worst_hours, 
+                                  by = c("origin", "year",
+                                         "month", "day", "hour"))
+
+select(weather_most_delayed, temp, wind_speed, precip) %>%
+  print(n = 48)
+
+ggplot(weather_most_delayed, aes(x = precip, y = wind_speed, color = temp)) +
+  geom_point()
+```
+
+5. What does anti_join(flights, airports, by = c("dest" = "faa")) tell you? What does anti_join(airports, flights, by = c("faa" = "dest")) tell you?
+
+```{r exercise_5.1.4}
+#Drops all observations in flights where "dest" matches airports$faa
+anti_join(flights, airports, by = c("dest" = "faa"))
+
+#Drops all observations in airports where "faa" matches flights$dest
+anti_join(airports, flights, by = c("faa" = "dest")) 
+```
+
+6. You might expect that there’s an implicit relationship between plane and airline, because each plane is flown by a single airline. Confirm or reject this hypothesis using the tools you’ve learned above.
+
+```{r exercise_5.1.4}
+flights %>%
+  filter(!is.na(tailnum)) %>%
+  distinct(tailnum, carrier, .keep_all = TRUE)%>%
+  count(tailnum) %>%
+  filter(n > 1) %>%
+  inner_join(flights, "tailnum") %>%
+  select(carrier, tailnum, n) %>%
+  # join with airlines to get airline names
+  left_join(airlines, by = "carrier") %>%
+  select(tailnum, carrier) %>%
+    inner_join(airlines, "carrier") %>% unique()
+
+```
