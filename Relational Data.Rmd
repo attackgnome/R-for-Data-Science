@@ -31,12 +31,27 @@ We know that some days of the year are “special”, and fewer people than usua
 ## 13.3.1 Exercises
 1. Add a surrogate key to flights.
 
+```{r exercises_3.1.1}
+flights %>%
+  mutate(key = row_number())
+```
+
 2. Identify the keys in the following datasets
-  a. Lahman::Batting,
+  a. Lahman::Batting
+  `playerID`, `yearID`, `teamID`, `lgID`
+  
   b. babynames::babynames
+  None - no other tables
+  
   c. nasaweather::atmos
+  `lat`, `long`
+  
   d. fueleconomy::vehicles
+  `make`, `model`
+  
   e. ggplot2::diamonds
+  None - no other tables
+  
   (You might need to install some packages and read some documentation.)
 
 3. Draw a diagram illustrating the connections between the Batting, People, and Salaries tables in the Lahman package. Draw another diagram that shows the relationship between People, Managers, AwardsManagers.
@@ -66,21 +81,36 @@ airports %>%
 
 
 ```{r exercise 4.6.2}
-airports %>%
-  select(lat, lon, faa)%>%
-  left_join(flights, c("faa" = "origin")) %>%
-  rename(orign_lat = lat, origin_lon = lon)%>%
+airport_loc <- airports%>%
+  select(lat, lon, faa)
+
+flights %>%
+  left_join(airport_loc, c("origin" = "faa")) %>%
+  rename(origin_lat = lat, origin_lon = lon) %>%
+  left_join(airport_loc, c("dest" = "faa")) %>%
+  rename(dest_lat = lat, dest_lon = lon)
 ```
 
 
 3. Is there a relationship between the age of a plane and its delays?
 
 ```{r exercise 4.6.3}
-
+planes %>%
+  select(tailnum, model, plane_year = year)%>%
+  inner_join(flights, "tailnum") %>%
+  group_by(plane_year)%>%
+  summarise(avg_delay = mean(dep_delay, na.rm = TRUE)) %>%
+  ggplot() + geom_point(aes(x=plane_year, y = avg_delay))
 ```
 
 
-What weather conditions make it more likely to see a delay?
+4. What weather conditions make it more likely to see a delay?
+
+```{r exercise 4.6.4}
+flights %>%
+  inner_join(weather, "origin")
+```
+
 
 What happened on June 13 2013? Display the spatial pattern of delays, and then use Google to cross-reference with the weather.
 
